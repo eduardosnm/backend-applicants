@@ -108,6 +108,7 @@ class LocalUsersRepository implements UsersRepository
                 );
             }
         }
+
         return new UserNotFoundException();
 
     }
