@@ -26,15 +26,26 @@ class FindUsersController
     public function __invoke(Request $request, Response $response): Response
     {
         $query = $request->getQueryParams()['q'] ?? '';
-        $limit = $request->getQueryParams()['limit'] ?? 0;
+        $limit = $request->getQueryParams()['limit'] ?? 20;
 
         $login = new Login($query);
 
         // FIXME: Se debe tener cuidado en la implementación
         // para que siga las notas del documento de requisitos
         $localUsers = $this->localUsersRepository->findByLogin($login, $limit);
-//        $githubUsers = $this->gitHubUsersRepository->findByLogin($login, $limit);
-        $githubUsers = collect([]);
+        $githubUsers = $this->gitHubUsersRepository->findByLogin($login, $limit);
+
+        $localLimit = ceil($limit/2);
+        $gitHubLitmit = $limit - $localLimit;
+
+        if ($githubUsers->count() < $gitHubLitmit) {
+            $localLimit += $githubUsers->count();
+            $gitHubLitmit -= $githubUsers->count();
+        }
+
+        $localUsers = $localUsers->take($localLimit);
+        $githubUsers = $githubUsers->take($gitHubLitmit);
+
 
         $users = $localUsers->merge($githubUsers)->map(function (User $user) {
             return [
