@@ -2,7 +2,7 @@
 
 namespace Osana\Challenge\Domain\Users;
 
-class User
+class User implements \JsonSerializable
 {
     /** @var Id */
     private $id;
@@ -42,5 +42,19 @@ class User
     public function getProfile(): Profile
     {
         return $this->profile;
+    }
+
+    public function jsonSerialize()
+    {
+        return [
+            "id" => $this->getId()->getValue(),
+            "login" => $this->getLogin()->getValue(),
+            "type" => $this->getType()->getValue(),
+            "profile" => [
+                "name" => $this->getProfile()->getName()->getValue(),
+                "company" => $this->getProfile()->getCompany()->getValue(),
+                "location" => $this->getProfile()->getLocation()->getValue()
+            ]
+        ];
     }
 }
