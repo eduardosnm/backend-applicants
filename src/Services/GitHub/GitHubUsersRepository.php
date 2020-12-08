@@ -32,17 +32,19 @@ class GitHubUsersRepository implements UsersRepository
         $users = json_decode($response->getBody()->getContents());
         $result = collect();
         foreach ($users as $user){
-            $result->push(
-                new User(
-                    new Id($user->id),
-                    new Login($user->login),
-                    Type::GitHub(),
-                    new Profile(
-                        new Name($user->name ?? ''),
-                        new Company($user->company ?? ''),
-                        new Location($user->location ?? ''))
-                )
-            );
+            if (preg_match("#^{$name->getValue()}(.*)$#i", $user->login)) {
+                $result->push(
+                    new User(
+                        new Id($user->id),
+                        new Login($user->login),
+                        Type::GitHub(),
+                        new Profile(
+                            new Name($user->name ?? ''),
+                            new Company($user->company ?? ''),
+                            new Location($user->location ?? ''))
+                    )
+                );
+            }
         }
 
         return $result;

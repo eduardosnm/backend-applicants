@@ -25,6 +25,13 @@ class UsersSheet extends Singleton
         return $this->fileHandle->getActiveSheet()->getHighestRow();
     }
 
+    public function setCell($cell, $value)
+    {
+
+        $this->fileHandle->getActiveSheet()->insertNewRowBefore(102)->setCellValue($cell,$value);
+//        var_dump($this->fileHandle->getActiveSheet()->getCell($cell));exit;
+    }
+
     public static function getUsers(): Singleton
     {
         return static::getInstance();

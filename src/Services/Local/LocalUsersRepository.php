@@ -25,76 +25,40 @@ class LocalUsersRepository implements UsersRepository
         $limit = $limit ? ($limit + 1) : self::DEFAULT_LIMIT;
         $begin = 2;
 
-        $usersSheet = UsersSheet::getUsers();
-        $profilesSheet = ProfilesSheet::getProfiles();
+        $usersHandler = new UserHandler();
 
-        if (empty($login->getValue())){
-            $users = $usersSheet->getRange($begin, $limit);
-            $profiles = $profilesSheet->getRange($begin, $limit);
-            return collect(array_filter($this->getUsers($users, $profiles, $login)));
-        }
+        return $usersHandler->getUsers($login, $limit, $begin);
 
-        $result = [];
-        $total = $usersSheet->getTotalRows() - 1;
-        $totalPages = ceil($total / $limit);
-        $perPage = $limit;
-        for ($i=0; $i < $totalPages;$i++){
-            $users = $usersSheet->getRange($begin, $perPage);
-            $profiles = $profilesSheet->getRange($begin, $perPage);
-            $result[] = array_filter($this->getUsers($users, $profiles, $login));
-
-            $begin = $perPage + 1;
-            $perPage += $limit;
-
-        }
-
-        return collect(array_reduce($result, 'array_merge', array()))->take($limit - 1);
     }
 
     public function getByLogin(Login $login, int $limit = 0): User
     {
         $limit = $limit ? ($limit + 1) : self::DEFAULT_LIMIT;
         $begin = 2;
-        $usersSheet = UsersSheet::getUsers();
-        $profilesSheet = ProfilesSheet::getProfiles();
 
-        $result = null;
-        $total = $usersSheet->getTotalRows() - 1;
-        $totalPages = ceil($total / $limit);
-        $perPage = $limit;
-        for ($i=0; $i < $totalPages;$i++){
-            $users = $usersSheet->getRange($begin, $perPage);
-            $profiles = $profilesSheet->getRange($begin, $perPage);
-            $result = $this->getUser($users, $profiles, $login);
-            if ($result instanceof User){
-                return $result;
-            }
-            $begin = $perPage + 1;
-            $perPage += $limit;
+        $usersHandler = new UserHandler();
 
-        }
+        return $usersHandler->getUser($login, $limit, $begin);
 
     }
 
     public function add(User $user): void
     {
-        // TODO: implement me
+        $usersSheet = UsersSheet::getUsers();
+        $profilesSheet = ProfilesSheet::getProfiles();
+
+        $insertInRow = $usersSheet->getTotalRows() + 1;
+        $usersSheet->setCell("A{$insertInRow}", $user->getId()->getValue());
+        $usersSheet->setCell("B{$insertInRow}", $user->getLogin()->getValue());
+        $usersSheet->setCell("C{$insertInRow}", $user->getType()->getValue());
+
+        $profilesSheet->setCell("A{$insertInRow}", $user->getId()->getValue());
+        $profilesSheet->setCell("B{$insertInRow}", $user->getProfile()->getCompany()->getValue());
+        $profilesSheet->setCell("C{$insertInRow}", $user->getProfile()->getLocation()->getValue());
+        $profilesSheet->setCell("D{$insertInRow}", $user->getProfile()->getName()->getValue());
+
     }
 
-    private function getUsers(array $users, array $profiles, Login $login)
-    {
-        return array_map(function ($user, $profile) use ($login) {
-            if (preg_match("#^{$login->getValue()}(.*)$#i", $user[1])) {
-                return new User(
-                    new Id($user[0]),
-                    new Login($user[1]),
-                    Type::Local(),
-                    new Profile(new Name($profile[3]), new Company($profile[1]), new Location($profile[2]))
-                );
-            }
-            return null;
-        }, $users, $profiles);
-    }
 
     private function getUser(array $users, array $profiles, Login $login)
     {

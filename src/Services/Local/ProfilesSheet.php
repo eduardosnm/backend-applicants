@@ -20,6 +20,11 @@ class ProfilesSheet extends Singleton
         return $this->fileHandle->getActiveSheet()->rangeToArray("A{$begin}:D{$limit}");
     }
 
+    public function setCell($cell, $value)
+    {
+        $this->fileHandle->getActiveSheet()->getCell($cell)->setValue($value);
+    }
+
     public static function getProfiles(): Singleton
     {
         return static::getInstance();
