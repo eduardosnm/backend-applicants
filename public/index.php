@@ -44,7 +44,7 @@ $customErrorHandler = function (
     bool $logErrorDetails
 
 ) use ($app) {
-//    var_dump($exception->getCode());exit;
+
     $payload = ['error' => $exception->getMessage()];
 
     $response = $app->getResponseFactory()->createResponse();
