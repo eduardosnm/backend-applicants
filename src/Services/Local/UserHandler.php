@@ -12,6 +12,7 @@ use Osana\Challenge\Domain\Users\Name;
 use Osana\Challenge\Domain\Users\Profile;
 use Osana\Challenge\Domain\Users\Type;
 use Osana\Challenge\Domain\Users\User;
+use Osana\Challenge\Domain\Users\UserNotFoundException;
 use Tightenco\Collect\Support\Collection;
 
 class UserHandler
@@ -25,7 +26,7 @@ class UserHandler
         $this->profilesSheet = ProfilesSheet::getProfiles();
     }
 
-    public function getUser(Login $login, $limit, $begin)
+    public function getUser(Login $login, $limit, $begin) : User
     {
         $result = null;
         $total = $this->usersSheet->getTotalRows() - 1;
@@ -42,6 +43,9 @@ class UserHandler
             $perPage += $limit;
         }
 
+        if (is_null($result)){
+            throw new \Exception("User not found", 404);
+        }
         return $result;
     }
 

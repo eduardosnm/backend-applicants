@@ -64,7 +64,7 @@ class LocalUsersRepository implements UsersRepository
             );
             fclose($profilesSheet);
         }catch (\Exception $ex){
-
+            throw new \Exception("User not found", 404);
         }
 
     }

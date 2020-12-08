@@ -8,6 +8,8 @@ use Osana\Challenge\Http\Controllers\StoreUserController;
 use Osana\Challenge\Http\Controllers\VersionController;
 use Osana\Challenge\Services\GitHub\GitHubUsersRepository;
 use Osana\Challenge\Services\Local\LocalUsersRepository;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Log\LoggerInterface;
 use Slim\Factory\AppFactory;
 use Zeuxisoo\Whoops\Slim\WhoopsMiddleware;
 
@@ -31,6 +33,31 @@ AppFactory::setContainer($container);
 $app = AppFactory::create();
 $app->addBodyParsingMiddleware();
 $app->add(new WhoopsMiddleware(['enable' => env('API_ENV') === 'local']));
+
+$app->addRoutingMiddleware();
+// Define Custom Error Handler
+$customErrorHandler = function (
+    ServerRequestInterface $request,
+    Throwable $exception,
+    bool $displayErrorDetails,
+    bool $logErrors,
+    bool $logErrorDetails
+
+) use ($app) {
+//    var_dump($exception->getCode());exit;
+    $payload = ['error' => $exception->getMessage()];
+
+    $response = $app->getResponseFactory()->createResponse();
+    $response->getBody()->write(
+        json_encode($payload, JSON_UNESCAPED_UNICODE)
+    );
+
+    return $response->withHeader('Content-Type', 'application/json')
+        ->withStatus($exception->getCode(), $exception->getMessage());
+};
+
+$errorMiddleware = $app->addErrorMiddleware(true, true, true, $logger);
+$errorMiddleware->setDefaultErrorHandler($customErrorHandler);
 
 // routes
 $app->get('/', VersionController::class);
