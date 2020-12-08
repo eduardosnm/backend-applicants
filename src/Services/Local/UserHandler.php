@@ -36,12 +36,13 @@ class UserHandler
             $profiles = $this->profilesSheet->getRange($begin, $perPage);
             $result = $this->findUser($users, $profiles, $login);
             if ($result instanceof User){
-                return $result;
+                break;
             }
             $begin = $perPage + 1;
             $perPage += $limit;
-
         }
+
+        return $result;
     }
 
     public function getUsers(Login $login, $limit, $begin) : Collection
@@ -56,7 +57,7 @@ class UserHandler
 
     }
 
-    private function findUser($users, $profiles,  $login) : User
+    private function findUser($users, $profiles,  $login)
     {
         $user = null;
         for ($i=0;$i < count($users); $i++){

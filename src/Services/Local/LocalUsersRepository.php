@@ -39,23 +39,33 @@ class LocalUsersRepository implements UsersRepository
         $usersHandler = new UserHandler();
 
         return $usersHandler->getUser($login, $limit, $begin);
-
     }
 
     public function add(User $user): void
     {
-        $usersSheet = UsersSheet::getUsers();
-        $profilesSheet = ProfilesSheet::getProfiles();
+        try {
+            $usersSheet = fopen(__DIR__.'/../../../data/users.csv', 'a');
+            fputcsv($usersSheet,
+                [
+                    $user->getId()->getValue(),
+                    $user->getLogin()->getValue(),
+                    ucfirst($user->getType()->getValue())
+                ]
+            );
+            fclose($usersSheet);
+            $profilesSheet = fopen(__DIR__.'/../../../data/profiles.csv', 'a');
+            fputcsv($profilesSheet,
+                [
+                    $user->getId()->getValue(),
+                    $user->getProfile()->getCompany()->getValue(),
+                    $user->getProfile()->getLocation()->getValue(),
+                    $user->getProfile()->getName()->getValue(),
+                ]
+            );
+            fclose($profilesSheet);
+        }catch (\Exception $ex){
 
-        $insertInRow = $usersSheet->getTotalRows() + 1;
-        $usersSheet->setCell("A{$insertInRow}", $user->getId()->getValue());
-        $usersSheet->setCell("B{$insertInRow}", $user->getLogin()->getValue());
-        $usersSheet->setCell("C{$insertInRow}", $user->getType()->getValue());
-
-        $profilesSheet->setCell("A{$insertInRow}", $user->getId()->getValue());
-        $profilesSheet->setCell("B{$insertInRow}", $user->getProfile()->getCompany()->getValue());
-        $profilesSheet->setCell("C{$insertInRow}", $user->getProfile()->getLocation()->getValue());
-        $profilesSheet->setCell("D{$insertInRow}", $user->getProfile()->getName()->getValue());
+        }
 
     }
 

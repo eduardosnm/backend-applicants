@@ -41,7 +41,10 @@ class StoreUserController
         );
 
         $this->localUsersRepository->add($user);
-        
-        return $response;
+
+        $response->getBody()->write(json_encode($user));
+
+        return $response->withHeader('Content-Type', 'application/json')
+            ->withStatus(201, 'Created');
     }
 }
