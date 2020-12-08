@@ -34,9 +34,7 @@ class StoreUserController
         $v->rule('required', 'profile.name');
         $v->rule('required', 'profile.company');
         $v->rule('required', 'profile.location');
-        if (!$v->validate()) {
-            throw new \Exception(json_encode($v->errors()), 422);
-        }
+        if (!$v->validate()) throw new \Exception(json_encode($v->errors()), 422);
 
         $usersSheet = UsersSheet::getUsers();
         $id = "CSV".($usersSheet->getTotalRows());
